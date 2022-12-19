@@ -48,24 +48,56 @@ const formatData = () => {
     })
     state.data = data;
     state._data = data;
-    state.pageInfo.totalItems = data.length;
-    state.pageInfo.totalPages = Math.floor(data.length / state.pageInfo.limit);
-    state.pageInfo.hasPrevPage = state.pageInfo.currentPage > 1;
-    state.pageInfo.hasNextPage = state.pageInfo.currentPage < state.pageInfo.totalPages;
 }
 
+const appliedDataPage = () => {
+    state.pageInfo.totalItems = state._data.length;
+    state.pageInfo.totalPages = Math.floor(state._data.length / state.pageInfo.limit);
+    state.pageInfo.hasPrevPage = state.pageInfo.currentPage > 1;
+    state.pageInfo.hasNextPage = state.pageInfo.currentPage < state.pageInfo.totalPages;
+
+    const startIndex = state.pageInfo.limit * (state.pageInfo.currentPage - 1);
+
+    state.data = [...state._data].splice(startIndex, state.pageInfo.limit);
+}
+
+const appliedDataSort = () =>{
+    switch (state.orderBy){
+        case "A-Z":
+          state.data.sort((a, b) => a.title < b.title ? -1 : 0 )
+          break;
+        case "Z-A":
+            state.data.sort((a, b) => a.title > b.title ? 1 : 0)
+            break;
+        case "ID-ASC":
+            state.data.sort((a, b) => a.id - b.id)
+            break;
+        case "ID-DESC":
+            state.data.sort((a, b) => b.id - a.id)
+            break
+        default:
+            state.data.sort((a, b) => a.title < b.title ? -1 : 0 )
+            break;
+    }
+}
+
+const appliedModifiers = () =>{
+    appliedDataPage();
+    appliedDataSort();
+}
 
 const fetchData = async () => {
     await fetchPosts();
     await fetchUsers();
-    formatData();
-    console.log(state);
+    formatData();   
 }
 
 
 
 const init = async () => {
     await fetchData();
+    appliedModifiers();
+    console.log(state);
 }
 
 init();
